@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selection Portal — MGIT x AIESEC x IIITH</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #ffffff;
+            --zinc-100: #f4f4f5;
+            --zinc-200: #e4e4e7;
+            --zinc-300: #d4d4d8;
+            --zinc-500: #71717a;
+            --zinc-900: #18181b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --primary: #000000;
+            --radius-lg: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--zinc-900); -webkit-font-smoothing: antialiased; }
+
+        .app-container { max-width: 800px; margin: 0 auto; padding: 0 1rem; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 0; border-bottom: 1px solid var(--zinc-100); }
+        .logo { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zinc-500); }
+
+        header { padding: 4rem 0 3rem; text-align: center; }
+        h1 { font-size: clamp(2.25rem, 8vw, 3.5rem); font-weight: 900; letter-spacing: -0.06em; margin-bottom: 0.75rem; line-height: 1; }
+        .subtitle { color: var(--zinc-500); font-size: 1.1rem; max-width: 500px; margin: 0 auto; line-height: 1.5; }
+
+        /* Search Section */
+        .search-container { position: sticky; top: 1rem; z-index: 100; margin-bottom: 4rem; padding: 0.5rem 0; }
+        .input-group { position: relative; }
+        input {
+            width: 100%; padding: 1.25rem 1.5rem; font-size: 1.1rem; border-radius: 16px;
+            border: 2px solid var(--zinc-200); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); 
+            outline: none; transition: 0.2s;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+        }
+        input:focus { border-color: var(--primary); }
+
+        .suggestions-panel {
+            position: absolute; top: 100%; left: 0; right: 0; background: white; 
+            border: 1px solid var(--zinc-200); border-radius: 16px; margin-top: 0.5rem;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.15); display: none; overflow: hidden;
+            max-height: 350px; overflow-y: auto;
+        }
+        .suggestion-item {
+            padding: 1.1rem 1.5rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--zinc-100); transition: background 0.1s;
+        }
+        .suggestion-item:hover { background: var(--zinc-100); }
+        .suggestion-item .team-name { font-weight: 700; }
+        .suggestion-item .select-hint { font-size: 0.7rem; color: var(--zinc-400); font-weight: 800; text-transform: uppercase; }
+
+        /* HOME VIEW: WINNERS */
+        .section-header { text-align: center; margin-bottom: 2rem; }
+        .section-label { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: var(--zinc-500); }
+
+        .winners-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 4rem; }
+        .winner-card { 
+            position: relative; display: flex; align-items: center; padding: 1.75rem; background: white; 
+            border: 2px solid var(--zinc-100); border-radius: 20px; transition: 0.2s; cursor: pointer;
+        }
+        .winner-card:hover { transform: scale(1.01); border-color: var(--zinc-900); }
+        
+        /* Champion & Runner Up Decor */
+        .winner-card.top-1 { background: var(--zinc-900); color: white; border: none; }
+        .winner-card.top-2 { border: 2px solid var(--zinc-900); background: #fcfcfc; }
+        
+        .role-badge { position: absolute; top: -10px; right: 20px; font-size: 0.65rem; font-weight: 900; padding: 0.2rem 0.75rem; border-radius: 4px; letter-spacing: 0.05em; }
+        .badge-champion { background: #ffd700; color: black; }
+        .badge-runner { background: var(--zinc-900); color: white; }
+
+        .rank-box { width: 3.5rem; font-size: 1.25rem; font-weight: 900; font-family: monospace; }
+        .winner-info { flex: 1; }
+        .winner-name { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.03em; }
+        .winner-score { font-size: 0.85rem; font-weight: 800; background: var(--zinc-100); padding: 0.4rem 0.8rem; border-radius: 100px; color: var(--zinc-900); }
+        .top-1 .winner-score { background: rgba(255,255,255,0.15); color: white; }
+
+        /* DASHBOARD VIEW */
+        .view { transition: opacity 0.2s ease; }
+        .hidden { display: none !important; }
+        .btn-back { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-weight: 700; color: var(--zinc-500); cursor: pointer; margin-bottom: 2.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .dash-header { margin-bottom: 4rem; }
+        .status-badge { display: inline-block; padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 1.5rem; border: 1px solid; }
+        .status-s { background: #ecfdf5; border-color: #10b98133; color: var(--success); }
+        .status-b { background: #fffbeb; border-color: #f59e0b33; color: var(--warning); }
+        .status-none { background: var(--zinc-100); border-color: var(--zinc-200); color: var(--zinc-500); }
+
+        .dash-title { font-size: clamp(2.5rem, 10vw, 4rem); font-weight: 900; letter-spacing: -0.07em; margin-bottom: 1rem; line-height: 0.95; }
+        .dash-desc { color: var(--zinc-500); line-height: 1.5; max-width: 600px; font-size: 1.1rem; }
+
+        /* Metric Grid */
+        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--zinc-200); border: 2px solid var(--zinc-200); border-radius: 20px; overflow: hidden; }
+        .metric-card { background: white; padding: 2.5rem 1.5rem; text-align: center; }
+        .metric-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--zinc-400); letter-spacing: 0.1em; margin-bottom: 0.75rem; display: block; }
+        .metric-value { font-size: 2.25rem; font-weight: 800; letter-spacing: -0.04em; }
+
+        footer { margin-top: auto; padding: 4rem 0 2rem; border-top: 1px solid var(--zinc-100); font-size: 0.75rem; font-weight: 700; color: var(--zinc-400); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; }
+
+        @media (max-width: 640px) {
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+            .metric-card { padding: 1.5rem 1rem; }
+            .winner-card { padding: 1.5rem; }
+        }
+        @media (max-width: 400px) { .metrics-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <nav>
+        <div class="logo">Selection System 2026</div>
+    </nav>
+
+    <div id="hero">
+        <header>
+            <h1>Ideathon Results</h1>
+            <p class="subtitle">Search and select your team to view your scores and selection status for Round 2.</p>
+        </header>
+
+        <div class="search-container">
+            <div class="input-group">
+                <input type="text" id="searchInput" placeholder="Enter team name..." autocomplete="off">
+                <div id="suggestions" class="suggestions-panel"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOME VIEW -->
+    <div id="homeView" class="view">
+        <div class="section-header">
+            <h2 class="section-label">Selected for Round 2 @ IIIT-H</h2>
+        </div>
+        <div class="winners-grid" id="winnerList"></div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="detailsView" class="view hidden">
+        <div class="btn-back" onclick="goHome()">← Back to Overview</div>
+        
+        <div class="dash-header">
+            <div id="dStatus" class="status-badge"></div>
+            <h2 id="dName" class="dash-title"></h2>
+            <p id="dDesc" class="dash-desc"></p>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card"><span class="metric-label">Technical</span><div class="metric-value" id="m-tech">0</div></div>
+            <div class="metric-card"><span class="metric-label">Innovation</span><div class="metric-value" id="m-inn">0</div></div>
+            <div class="metric-card"><span class="metric-label">SDG Impact</span><div class="metric-value" id="m-sdg">0</div></div>
+            <div class="metric-card"><span class="metric-label">Complexity</span><div class="metric-value" id="m-comp">0</div></div>
+            <div class="metric-card"><span class="metric-label">Scalability</span><div class="metric-value" id="m-imp">0</div></div>
+            <div class="metric-card" style="background:var(--zinc-100);"><span class="metric-label">Final Average</span><div class="metric-value" id="m-tot" style="font-weight:900;">0</div></div>
+        </div>
+    </div>
+
+    <footer>
+        MGIT × AIESEC × IIITH — Official Selection Portal
+    </footer>
+</div>
+
+<script>
+    const data = [
+        {"name": "cyber pulse", "tech": 2, "sdg": 4, "comp": 2.5, "inn": 2.5, "imp": 5, "tot": 3.2, "tier": "B"},
+        {"name": "autocrash", "tech": 2, "sdg": 3, "comp": 3, "inn": 2, "imp": 4.75, "tot": 2.95, "tier": "-"},
+        {"name": "Project Panacea", "tech": 4, "sdg": 2.5, "comp": 3.5, "inn": 3, "imp": 3, "tot": 3.2, "tier": "S"},
+        {"name": "Changers", "tech": 1, "sdg": 2, "comp": 4, "inn": 2, "imp": 4, "tot": 2.6, "tier": "-"},
+        {"name": "carbonx", "tech": 4, "sdg": 4, "comp": 4.25, "inn": 3.5, "imp": 4.5, "tot": 4.05, "tier": "S"},
+        {"name": "adapt", "tech": 2.75, "sdg": 3, "comp": 3, "inn": 2.25, "imp": 4, "tot": 3, "tier": "-"},
+        {"name": "ZERO WASTE TRIBE", "tech": 1, "sdg": 4, "comp": 2.75, "inn": 3, "imp": 3.5, "tot": 2.85, "tier": "-"},
+        {"name": "Ecologic", "tech": 3.5, "sdg": 4.25, "comp": 4.25, "inn": 3.5, "imp": 4.5, "tot": 4, "tier": "S"},
+        {"name": "Impacters", "tech": 2, "sdg": 3, "comp": 3.25, "inn": 2.75, "imp": 3.75, "tot": 2.95, "tier": "-"},
+        {"name": "Singularity", "tech": 3.75, "sdg": 3.5, "comp": 4, "inn": 3.25, "imp": 4.5, "tot": 3.8, "tier": "B"},
+        {"name": "Full Stack samosa", "tech": 3.75, "sdg": 3.5, "comp": 4.25, "inn": 4.25, "imp": 4.25, "tot": 4, "tier": "S"},
+        {"name": "TECH MAX", "tech": 4.75, "sdg": 3.75, "comp": 4.25, "inn": 4.25, "imp": 4.25, "tot": 4.25, "tier": "S"},
+        {"name": "Jivaxis labs", "tech": 4.5, "sdg": 4.5, "comp": 5, "inn": 4.5, "imp": 4.25, "tot": 4.55, "tier": "S"},
+        {"name": "byte busters", "tech": 2, "sdg": 2.5, "comp": 2.75, "inn": 2, "imp": 3, "tot": 2.45, "tier": "-"},
+        {"name": "neuro spark", "tech": 1.5, "sdg": 2, "comp": 2.5, "inn": 2, "imp": 3, "tot": 2.2, "tier": "-"},
+        {"name": "code drift", "tech": 2, "sdg": 2.25, "comp": 2.75, "inn": 2.5, "imp": 2.5, "tot": 2.4, "tier": "-"},
+        {"name": "data miners", "tech": 2.5, "sdg": 2, "comp": 2.5, "inn": 2, "imp": 3, "tot": 2.4, "tier": "-"},
+        {"name": "pixel pirates", "tech": 1.75, "sdg": 2.5, "comp": 2.25, "inn": 2, "imp": 2.75, "tot": 2.25, "tier": "-"},
+        {"name": "logic loop", "tech": 2, "sdg": 2, "comp": 2.5, "inn": 2.25, "imp": 2.75, "tot": 2.3, "tier": "-"},
+        {"name": "quantum crew", "tech": 2.25, "sdg": 2.5, "comp": 2.75, "inn": 2, "imp": 2.5, "tot": 2.4, "tier": "-"},
+        {"name": "debug squad", "tech": 1.5, "sdg": 2.25, "comp": 2.5, "inn": 2, "imp": 2.75, "tot": 2.2, "tier": "-"},
+        {"name": "Callmebyurusername", "tech": 4, "sdg": 3.75, "comp": 4.75, "inn": 4, "imp": 4.25, "tot": 4, "tier": "S"},
+        {"name": "Limitless", "tech": 4, "sdg": 3.75, "comp": 4.25, "inn": 4.5, "imp": 4.25, "tot": 4.15, "tier": "S"},
+        {"name": "Insomnia", "tech": 2.5, "sdg": 3, "comp": 2, "inn": 2.5, "imp": 3, "tot": 2.6, "tier": "-"},
+        {"name": "Cyberboys", "tech": 2, "sdg": 4, "comp": 2.5, "inn": 2.5, "imp": 5, "tot": 3.2, "tier": "B"}
+    ];
+
+    const input = document.getElementById('searchInput');
+    const panel = document.getElementById('suggestions');
+    const home = document.getElementById('homeView');
+    const details = document.getElementById('detailsView');
+    const hero = document.getElementById('hero');
+
+    window.onload = () => {
+        const sTeams = data.filter(t => t.tier === 'S').sort((a,b) => b.tot - a.tot);
+        const list = document.getElementById('winnerList');
+        sTeams.forEach((t, i) => {
+            const isTop = i === 0;
+            const isRunner = i === 1;
+            list.innerHTML += `
+                <div class="winner-card ${isTop ? 'top-1' : ''} ${isRunner ? 'top-2' : ''}" onclick="selectTeam('${t.name}')">
+                    ${isTop ? '<div class="role-badge badge-champion">CHAMPION</div>' : ''}
+                    ${isRunner ? '<div class="role-badge badge-runner">RUNNER UP</div>' : ''}
+                    <div class="rank-box">${String(i+1).padStart(2,'0')}</div>
+                    <div class="winner-info"><div class="winner-name">${t.name}</div></div>
+                    <div class="winner-score">${t.tot.toFixed(2)} Avg</div>
+                </div>
+            `;
+        });
+    }
+
+    input.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        if (val.length < 1) { panel.style.display = 'none'; return; }
+        const matches = data.filter(t => t.name.toLowerCase().includes(val)).slice(0, 5);
+        if (matches.length > 0) {
+            panel.innerHTML = matches.map(m => `
+                <div class="suggestion-item" onclick="selectTeam('${m.name}')">
+                    <span class="team-name">${m.name}</span>
+                    <span class="select-hint">Select →</span>
+                </div>
+            `).join('');
+            panel.style.display = 'block';
+        } else { panel.style.display = 'none'; }
+    });
+
+    function selectTeam(name) {
+        const team = data.find(t => t.name === name);
+        panel.style.display = 'none';
+        home.classList.add('hidden');
+        hero.classList.add('hidden');
+        details.classList.remove('hidden');
+
+        document.getElementById('dName').innerText = team.name;
+        const desc = document.getElementById('dDesc');
+        const badge = document.getElementById('dStatus');
+
+        badge.className = 'status-badge ' + (team.tier === 'S' ? 'status-s' : (team.tier === 'B' ? 'status-b' : 'status-none'));
+        
+        if (team.tier === 'S') {
+            badge.innerText = 'Selection Confirmed';
+            desc.innerText = "Congratulations! Your team has secured a position in Round 2 at IIIT-H on May 23-24. We have sent the onboarding kit to your registered email.";
+        } else if (team.tier === 'B') {
+            badge.innerText = 'Under Review (Waitlisted)';
+            desc.innerText = "Your scores are highly competitive. You are currently on the waitlist; we will notify you if a slot opens up. Please stay reachable.";
+        } else {
+            badge.innerText = 'Round 1 Completed';
+            desc.innerText = "Thank you for your participation. While you weren't shortlisted this time, your technical metrics show great promise. Refine your idea for future growth!";
+        }
+
+        document.getElementById('m-tech').innerText = team.tech;
+        document.getElementById('m-inn').innerText = team.inn;
+        document.getElementById('m-sdg').innerText = team.sdg;
+        document.getElementById('m-comp').innerText = team.comp;
+        document.getElementById('m-imp').innerText = team.imp;
+        document.getElementById('m-tot').innerText = team.tot.toFixed(2);
+        window.scrollTo(0,0);
+    }
+
+    function goHome() {
+        details.classList.add('hidden');
+        home.classList.remove('hidden');
+        hero.classList.remove('hidden');
+        input.value = '';
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !panel.contains(e.target)) panel.style.display = 'none';
+    });
+</script>
+</body>
+</html>
